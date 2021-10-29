@@ -6,8 +6,7 @@
   "scripts": {
 	"start-windows": "env-cmd ./test.env nodemon src/index.ts",
     "start": "env-cmd ./test.env nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts",
-    "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc"
   },
   "author": "dakimakuri",
   "license": "MIT",
