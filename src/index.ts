@@ -188,7 +188,7 @@ client.on('message', async (msg: Discord.Message) => {
     let result = (value - 32) * 5 / 9;
     result = Math.round(result * 100) / 100;
     msg.channel.send(`${value} F = ${result} C`);
-  } else if (content.replace(/[^a-z]/gi, '').toLowerCase().match(/^n+y+a+h*$/)) {
+  } else if (content.replace(/[^a-z]/gi, '').toLowerCase().match(/^(n+y+a+h*|m+e+o+w+)$/)) {
     // respond to nya with cat face
     msg.channel.send(cats());
   } else if (content.startsWith('kuri roles')) {
