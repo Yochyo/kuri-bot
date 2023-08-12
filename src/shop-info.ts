@@ -3,58 +3,54 @@ import * as request from 'request-promise-native';
 import { Mutex } from './mutex';
 
 let mutex = new Mutex();
-let matches: string[];
-export async function getMatches(): Promise<string[]> {
-  if (matches) {
-    return matches;
+let stores: {stores: ShopInfo[], expire: number};
+export async function getStores(): Promise<ShopInfo[]> {
+  const now = new Date()
+  if (stores && now.getTime() < stores.expire) {
+    return stores.stores;
   } else {
     try {
       await mutex.lock();
-      const response = await request(`https://bootleg.gx.ag/match.json`);
-      matches = JSON.parse(response).matches;
-      return matches;
+      const response = await request(`https://cunny.dakidex.com/v1/circles/external-stores`);
+      stores = {stores: JSON.parse(response).data.stores, expire: new Date(now.getTime()).setDate(now.getDate() + 1)};
+      return stores.stores;
     } finally {
       mutex.release();
     }
   }
 }
 
+export class ShopResult {
+  name: string;
+  url: string
+  status: 'legitimate' | 'scalper' | 'questionable' | 'bootlegger' | 'unknown';
+}
 export class ShopInfo {
   name: string;
   status: 'legitimate' | 'scalper' | 'questionable' | 'bootlegger' | 'unknown';
-  links: {
-    url: string;
-    match?: true;
-  }[];
-  reseller?: {
-    links: {
-      url: string;
-      match?: true;
-    }[];
-  };
-  url: string;
-  note?: string;
+  urls: string[];
 }
 
-export async function findShopInfo(message: string, opts: { ignoreMatches?: boolean } = {}): Promise<ShopInfo[]> {
+export async function findShopInfo(message: string, opts: { ignoreMatches?: boolean } = {}): Promise<ShopResult[]> {
   let { ignoreMatches = false } = opts;
-  let matches: string[];
+  let matches: ShopInfo[];
   try {
-    matches = await getMatches();
+    matches = await getStores();
   } catch (err) {
     console.error(err);
     return [];
   }
   const split = message.split(/\s/);
-  const shops: ShopInfo[] = [];
+  const shops: ShopResult[] = [];
   const stripUrl = (url: string) => {
     if (url.startsWith('https://')) {
       url = url.substr('https://' . length);
     } else if (url.startsWith('http://')) {
       url = url.substr('http://' . length);
     }
-    if (url.endsWith('/')) {
-      url = url.substr(0, url.length - 1);
+    const slug = url.indexOf('/');
+    if (slug != -1) {
+      url = url.substr(0, slug);
     }
     const query = url.indexOf('?');
     if (query != -1) {
@@ -63,6 +59,7 @@ export async function findShopInfo(message: string, opts: { ignoreMatches?: bool
     return url;
   };
   for (let part of split) {
+    const strippedPart = stripUrl(part)
     try {
       if (part.startsWith('<') && part.endsWith('>')) {
         part = part.substr(1, part.length - 2);
@@ -71,39 +68,22 @@ export async function findShopInfo(message: string, opts: { ignoreMatches?: bool
       if (!url.hostname || (url.protocol !== 'https:' && url.protocol !== 'http:')) {
         continue;
       }
-      let found = false;
-      let note: string;
       const check = async () => {
-        const response = await request(`https://bootleg.gx.ag/api/v1/check/${encodeURIComponent(part)}`);
-        const obj = JSON.parse(response);
-        if (obj.shop && obj.link) {
-          found = true;
-          obj.shop.url = stripUrl(obj.link.url);
-          if (obj.notes) {
-            obj.shop.note = obj.notes.join(' ');
+        for(const shop of matches){
+          for (const url of shop.urls){
+            if(strippedPart == url){
+              const shopCopy = {...shop, url}
+              shops.push(shopCopy)
+            }
           }
-          shops.push(obj.shop);
-        } else if (obj.notes) {
-          note = obj.notes.join(' ');
         }
       };
-      if (ignoreMatches) {
-        await check();
-      } else {
-        for (const match of matches) {
-          if (url.host === match || url.host.endsWith(`.${match}`)) {
-            await check();
-            break;
-          }
-        }
-      }
-      if (!found) {
+      await check();
+      if (!shops.length) {
         shops.push({
           name: 'Unknown',
           status: 'unknown',
-          url: stripUrl(part),
-          links: [],
-          note,
+          url: stripUrl(part)
         });
       }
     } catch {
