@@ -3,15 +3,16 @@ import * as fs from 'fs-extra';
 import * as _ from 'lodash';
 import * as env from './env';
 import * as reddit from './reddit';
-import { Mutex } from './mutex';
-import { currency } from './currency';
-import { Publisher } from './publisher';
-import { TimeToLive } from './time-to-live';
-import { findShopInfo } from './shop-info';
-import { translate } from './translate';
+import {Mutex} from './mutex';
+import {currency} from './currency';
+import {Publisher} from './publisher';
+import {TimeToLive} from './time-to-live';
+import {findShopInfo} from './shop-info';
+import {translate} from './translate';
+
 const cats = require('cat-ascii-faces');
 
-const client = new Discord.Client({ partials: ['USER', 'MESSAGE', 'CHANNEL', 'REACTION', 'GUILD_MEMBER'] });
+const client = new Discord.Client({partials: ['USER', 'MESSAGE', 'CHANNEL', 'REACTION', 'GUILD_MEMBER']});
 const syrene = new Discord.Client();
 
 const publishers = {
@@ -20,11 +21,11 @@ const publishers = {
 
 const timeToLive = new TimeToLive(client, {
   emojis: {
-    '⬛': { minutesToLive: 1 },
-    '🟥': { minutesToLive: 60 },
-    '🟧': { minutesToLive: 60 * 24 },
-    '🟨': { minutesToLive: 60 * 24 * 7 },
-    '🟩': { reset: true }
+    '⬛': {minutesToLive: 1},
+    '🟥': {minutesToLive: 60},
+    '🟧': {minutesToLive: 60 * 24},
+    '🟨': {minutesToLive: 60 * 24 * 7},
+    '🟩': {reset: true}
   }
 });
 
@@ -50,7 +51,8 @@ let octoMutex = new Mutex();
 const octoTimeout = 20000; // 20 seconds
 const octo1Emote = "<:Octo1:733281498697826324>"
 const octo2Emote = "<:Octo2:733281510588940288>"
-function matchOcto(typeToMatch : number, originalMessage: any) {
+
+function matchOcto(typeToMatch: number, originalMessage: any) {
   let idOfOriginalMessage = originalMessage.id;
   // No need to check if already matched,
   // as if it were the timeout would be cleared.
@@ -59,7 +61,7 @@ function matchOcto(typeToMatch : number, originalMessage: any) {
   octoArray.splice(octoArray.findIndex(inst => inst.id === idOfOriginalMessage), 1);
 
   //Send message to match the octopus.
-  if(typeToMatch == 1) {
+  if (typeToMatch == 1) {
     originalMessage.channel.send(octo2Emote);
   } else {
     originalMessage.channel.send(octo1Emote);
@@ -176,13 +178,13 @@ client.on('message', async (msg: Discord.Message) => {
         if (command[0] != '!') {
           await msg.channel.send('Command must start with !');
         } else {
-          if (_.find(assignableRoles, { command, guild } as any)) {
+          if (_.find(assignableRoles, {command, guild} as any)) {
             await msg.channel.send('Command already exists: ' + command);
           } else {
             if (role.permissions.has('ADMINISTRATOR')) {
               await msg.channel.send(`${role.name} cannot be self-assigned.`);
             } else {
-              assignableRoles.push({ command, guild, role: role.id });
+              assignableRoles.push({command, guild, role: role.id});
               await fs.writeJson('data/assignableRoles.json', assignableRoles);
               await msg.channel.send('Command ' + command + ' added to assign role ' + role.name);
             }
@@ -194,8 +196,8 @@ client.on('message', async (msg: Discord.Message) => {
         if (command[0] != '!') {
           await msg.channel.send('Command must start with !');
         } else {
-          if (_.find(assignableRoles, { command, guild } as any)) {
-            _.remove(assignableRoles, { command, guild } as any);
+          if (_.find(assignableRoles, {command, guild} as any)) {
+            _.remove(assignableRoles, {command, guild} as any);
             await msg.channel.send('Removing role command ' + command);
             await fs.writeJson('data/assignableRoles.json', assignableRoles);
           } else {
@@ -222,7 +224,7 @@ client.on('message', async (msg: Discord.Message) => {
   } else if (content.startsWith('!translate ') || content.startsWith('!t ')) {
     const message = await msg.channel.send('Translating...');
     try {
-      const { text, from } = await translate(content.substr(content.indexOf(' ') + 1));
+      const {text, from} = await translate(content.substr(content.indexOf(' ') + 1));
       await message.edit('Translated from ' + from + ':\n```' + text.replace(/\`/, `'`) + '```');
     } catch (err) {
       console.error(err);
@@ -283,11 +285,11 @@ syrene.on('message', async (msg: Discord.Message) => {
   let content = msg.content.trim();
   if (content === octo1Emote || content === octo2Emote) {
     // Use strict equality since we really only want to consider the message body being strictly the emoji.
-    let ty = content===octo1Emote?1:2;
-    let otherTy = content===octo1Emote?2:1;
+    let ty = content === octo1Emote ? 1 : 2;
+    let otherTy = content === octo1Emote ? 2 : 1;
 
     let thisChannelOctos = octoArray.filter(inst => inst.chan_id === msg.channel.id);
-    if(thisChannelOctos.length !== 0 && thisChannelOctos[thisChannelOctos.length - 1].type === otherTy) {
+    if (thisChannelOctos.length !== 0 && thisChannelOctos[thisChannelOctos.length - 1].type === otherTy) {
       //This message is here to match an Octo2; just cancel it out
       let toCancel = thisChannelOctos[thisChannelOctos.length - 1];
       octoArray.splice(octoArray.findIndex(inst => inst.id === toCancel.id), 1);
@@ -297,13 +299,13 @@ syrene.on('message', async (msg: Discord.Message) => {
       octoArray.push({type: ty, id: msg.id, chan_id: msg.channel.id, timeout_id: timeout_id});
     }
   } else if (content === octoHugEmote) {
-      msg.react(octoHugId);
-      //Note: This WILL fail if the bot is used in a server that's
-      //not Dakimakuras, as the emote will not be available.
+    msg.react(octoHugId);
+    //Note: This WILL fail if the bot is used in a server that's
+    //not Dakimakuras, as the emote will not be available.
   }
 });
 
-(async() => {
+(async () => {
   try {
     await fs.ensureDir('data');
     await fs.ensureDir('data/cache');
