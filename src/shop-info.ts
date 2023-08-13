@@ -59,11 +59,11 @@ export async function findShopInfo(message: string, opts: { ignoreMatches?: bool
     return url;
   };
   for (let part of split) {
-    const strippedPart = stripUrl(part)
     try {
       if (part.startsWith('<') && part.endsWith('>')) {
         part = part.substr(1, part.length - 2);
       }
+      const strippedPart = stripUrl(part)
       const url = new URL(part);
       if (!url.hostname || (url.protocol !== 'https:' && url.protocol !== 'http:')) {
         continue;
