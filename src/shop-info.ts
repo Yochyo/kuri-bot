@@ -1,9 +1,10 @@
-import { URL } from 'url';
+import {URL} from 'url';
 import * as request from 'request-promise-native';
-import { Mutex } from './mutex';
+import {Mutex} from './mutex';
 
 let mutex = new Mutex();
-let stores: {stores: ShopInfo[], expire: number};
+let stores: { stores: ShopInfo[], expire: number };
+
 export async function getStores(): Promise<ShopInfo[]> {
   const now = new Date()
   if (stores && now.getTime() < stores.expire) {
@@ -12,7 +13,7 @@ export async function getStores(): Promise<ShopInfo[]> {
     try {
       await mutex.lock();
       const response = await request(`https://cunny.dakidex.com/v1/circles/external-stores`);
-      stores = {stores: JSON.parse(response).data.stores, expire: new Date(now.getTime()).setDate(now.getDate() + 1)};
+      stores = {stores: JSON.parse(response).data.stores, expire: new Date(now.getTime() + 30 * 60000).getTime()};
       return stores.stores;
     } finally {
       mutex.release();
@@ -25,6 +26,7 @@ export class ShopResult {
   url: string
   status: 'legitimate' | 'scalper' | 'questionable' | 'bootlegger' | 'unknown';
 }
+
 export class ShopInfo {
   name: string;
   status: 'legitimate' | 'scalper' | 'questionable' | 'bootlegger' | 'unknown';
@@ -32,7 +34,7 @@ export class ShopInfo {
 }
 
 export async function findShopInfo(message: string, opts: { ignoreMatches?: boolean } = {}): Promise<ShopResult[]> {
-  let { ignoreMatches = false } = opts;
+  let {ignoreMatches = false} = opts;
   let matches: ShopInfo[];
   try {
     matches = await getStores();
@@ -44,9 +46,9 @@ export async function findShopInfo(message: string, opts: { ignoreMatches?: bool
   const shops: ShopResult[] = [];
   const stripUrl = (url: string) => {
     if (url.startsWith('https://')) {
-      url = url.substr('https://' . length);
+      url = url.substr('https://'.length);
     } else if (url.startsWith('http://')) {
-      url = url.substr('http://' . length);
+      url = url.substr('http://'.length);
     }
     const slug = url.indexOf('/');
     if (slug != -1) {
@@ -69,9 +71,9 @@ export async function findShopInfo(message: string, opts: { ignoreMatches?: bool
         continue;
       }
       const check = async () => {
-        for(const shop of matches){
-          for (const url of shop.urls){
-            if(strippedPart.includes(url)){
+        for (const shop of matches) {
+          for (const url of shop.urls) {
+            if (strippedPart.includes(url)) {
               const shopCopy = {...shop, url}
               shops.push(shopCopy)
             }
