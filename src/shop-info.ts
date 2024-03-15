@@ -72,7 +72,6 @@ export async function findShopInfo(message: string, opts: { ignoreMatches?: bool
       }
       const check = async () => {
         for (const shop of matches) {
-          console.log(matches)
           for (const url of shop.urls) {
             if (strippedPart == url) {
               const shopCopy = {...shop, url}
