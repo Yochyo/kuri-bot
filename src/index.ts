@@ -81,10 +81,13 @@ async function checkShops(message: Discord.Message, forceCheck: boolean) {
     } else if (shop.status === 'questionable') {
       if (forceCheck) note = `❗ The shop "${shop.name}" (${shop.url}) is questionable.`;
     } else if (shop.status === 'bootlegger') {
-      note = `❌ The shop "${shop.name}" (${shop.url}) has been known to sell bootleg products.`;
+      note = `❌ The shop "${shop.name}" (${shop.url}) has been known to sell either bootleg products or AI generated art.`;
     } else if (shop.status === 'legitimate') {
       if (forceCheck) note = `✅ The shop "${shop.name}" (${shop.url}) is legitimate and does not sell bootleg products.`;
     }
+
+    if(note && shop.notes)
+      note += `\n\n**Community notes:**\n${shop.notes}`
     if (note && !messages.includes(note))
       messages.push(note);
   }

@@ -23,12 +23,14 @@ export async function getStores(): Promise<ShopInfo[]> {
 
 export class ShopResult {
   name: string;
+  notes?: string;
   url: string
   status: 'legitimate' | 'scalper' | 'questionable' | 'bootlegger' | 'unknown';
 }
 
 export class ShopInfo {
   name: string;
+  notes?: string;
   status: 'legitimate' | 'scalper' | 'questionable' | 'bootlegger' | 'unknown';
   urls: string[];
 }
