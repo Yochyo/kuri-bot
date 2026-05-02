@@ -1,4 +1,4 @@
-import {findShopInfo} from "./shop-info";
+import {findShopInfo} from "./modules/shop-info";
 
 (async () => {
   console.log(await findShopInfo("hello, is https://www.dakimakuri.com/shop legit", {ignoreMatches: true}))

@@ -1,6 +1,6 @@
 import {mkdir} from 'fs/promises';
-import * as env from './env';
-import {TimeToLive} from './time-to-live';
+import * as env from './utils/env';
+import {TimeToLive} from './modules/time-to-live';
 import {createKuriClient, createSyreneClient} from './discord/create-client';
 import {registerKuriClient} from './handlers/kuri';
 import {registerSyreneClient} from './handlers/syrene';

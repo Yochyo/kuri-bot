@@ -1,5 +1,5 @@
 import {URL} from 'url';
-import {Mutex} from './mutex';
+import {Mutex} from '../utils/mutex';
 
 let mutex = new Mutex();
 let stores: { stores: ShopInfo[], expire: number };

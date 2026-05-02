@@ -3,9 +3,9 @@
 // The cache is invalidated after 12 hours.
 // A valid fixer API key is required. The free tier is sufficient.
 
-import * as env from './env';
-import {Cache} from './cache';
-import { Mutex } from './mutex';
+import * as env from '../utils/env';
+import {Cache} from '../utils/cache';
+import { Mutex } from '../utils/mutex';
 
 class Currency {
   private time = new Date(0);

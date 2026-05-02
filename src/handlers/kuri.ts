@@ -4,9 +4,9 @@ import {
   Events,
   PermissionFlagsBits,
 } from 'discord.js';
-import {TimeToLive} from '../time-to-live';
-import {findShopInfo} from '../shop-info';
-import {currency} from '../currency';
+import {TimeToLive} from '../modules/time-to-live';
+import {findShopInfo} from '../modules/shop-info';
+import {currency} from '../modules/currency';
 
 import cats = require('cat-ascii-faces');
 

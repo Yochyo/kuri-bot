@@ -1,7 +1,7 @@
 import type {Client, Message, MessageReaction} from 'discord.js';
 import {RESTJSONErrorCodes} from 'discord-api-types/v10';
-import {Cache} from './cache';
-import {Mutex} from './mutex';
+import {Cache} from '../utils/cache';
+import {Mutex} from '../utils/mutex';
 
 const minutes = 60 * 1000;
 
