@@ -11,7 +11,6 @@
   "author": "dakimakuri",
   "license": "MIT",
   "dependencies": {
-    "aws-sdk": "^2.958.0",
     "cat-ascii-faces": "^2.0.0",
     "cheerio": "^1.0.0-rc.2",
     "discord.js": "^14.26.4",

@@ -8,7 +8,6 @@ import * as fs from 'fs-extra';
 import * as _ from 'lodash';
 import {TimeToLive} from '../time-to-live';
 import {findShopInfo} from '../shop-info';
-import {translate} from '../translate';
 import {currency} from '../currency';
 
 import cats = require('cat-ascii-faces');
@@ -145,15 +144,6 @@ async function handleMessage(rt: KuriRuntime, msg: Message) {
           }
         }
       }
-    }
-  } else if (content.startsWith('!translate ') || content.startsWith('!t ')) {
-    const message = await msg.channel.send('Translating...');
-    try {
-      const {text, from} = await translate(content.substring(content.indexOf(' ') + 1));
-      await message.edit(`Translated from ${from}:\n\`\`\`${text.replace(/`/, `'`)}\`\`\``);
-    } catch (err) {
-      console.error(err);
-      await message.edit('Translation failed.');
     }
   } else {
     for (const assignableRole of assignableRoles) {
