@@ -2,7 +2,7 @@ import {mkdir} from 'fs/promises';
 import * as env from './env';
 import {TimeToLive} from './time-to-live';
 import {createKuriClient, createSyreneClient} from './discord/create-client';
-import {registerKuriClient, type AssignableRole} from './handlers/kuri';
+import {registerKuriClient} from './handlers/kuri';
 import {registerSyreneClient} from './handlers/syrene';
 
 const client = createKuriClient();
@@ -18,12 +18,9 @@ const timeToLive = new TimeToLive(client, {
   },
 });
 
-const assignableRoles: AssignableRole[] = [];
-
 registerKuriClient({
   client,
   timeToLive,
-  assignableRoles,
 });
 
 registerSyreneClient(syrene);

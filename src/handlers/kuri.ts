@@ -4,7 +4,6 @@ import {
   Events,
   PermissionFlagsBits,
 } from 'discord.js';
-import {readFile, writeFile} from 'fs/promises';
 import {TimeToLive} from '../time-to-live';
 import {findShopInfo} from '../shop-info';
 import {currency} from '../currency';
@@ -14,12 +13,9 @@ import cats = require('cat-ascii-faces');
 /** Channel where shop checks always run (guild). */
 const SHOP_ALWAYS_CHECK_CHANNEL_ID = '807402589565616171';
 
-export type AssignableRole = {command: string; guild: string; role: string};
-
 export type KuriRuntime = {
   client: Client;
   timeToLive: TimeToLive;
-  assignableRoles: AssignableRole[];
 };
 
 async function checkShops(message: Message, forceCheck: boolean) {
@@ -51,14 +47,13 @@ async function checkShops(message: Message, forceCheck: boolean) {
 }
 
 async function handleMessage(rt: KuriRuntime, msg: Message) {
-  let {client, assignableRoles} = rt;
+  let {client} = rt;
   if (msg.author.bot) return;
   if (!msg.channel.isSendable()) return;
   if (!msg.member) {
     await checkShops(msg, true);
     return;
   }
-  const admin = msg.member.permissions.has(PermissionFlagsBits.Administrator);
   let content = msg.content.trim();
   if (content.match(/^[-]?[\d|,]{0,12}(\.\d{1,2})?\s*\w{3}\s+to\s+\w{3}$/i)) {
     try {
@@ -93,86 +88,7 @@ async function handleMessage(rt: KuriRuntime, msg: Message) {
     await msg.channel.send(`${value} F = ${result} C`);
   } else if (content.replace(/[^a-z]/gi, '').toLowerCase().match(/^(n+y+a+h*|m+e+o+w+)$/)) {
     await msg.channel.send(cats());
-  } else if (content.startsWith('kuri roles')) {
-    const spl = content.split(' ');
-    if (spl.length < 3 || !admin) {
-      let response = 'Assignable roles: ';
-      let first = true;
-      for (const assignableRole of assignableRoles) {
-        if (assignableRole.guild === msg.guild!.id) {
-          if (!first) response += ', ';
-          const role = await msg.guild!.roles.fetch(assignableRole.role);
-          response += `${assignableRole.command} (${role!.name})`;
-          first = false;
-        }
-      }
-      await msg.channel.send(response);
-    } else {
-      const roles = [...msg.mentions.roles.values()];
-      if (roles.length === 1) {
-        const command = spl[2];
-        const guild = msg.guild!.id;
-        const role = roles[0];
-        if (command[0] !== '!') {
-          await msg.channel.send('Command must start with !');
-        } else {
-          if (assignableRoles.some((r) => r.command === command && r.guild === guild)) {
-            await msg.channel.send('Command already exists: ' + command);
-          } else {
-            if (role.permissions.has(PermissionFlagsBits.Administrator)) {
-              await msg.channel.send(`${role.name} cannot be self-assigned.`);
-            } else {
-              assignableRoles.push({command, guild, role: role.id});
-              await writeFile(
-                'data/assignableRoles.json',
-                `${JSON.stringify(assignableRoles, null, 2)}\n`,
-                'utf8',
-              );
-              await msg.channel.send('Command ' + command + ' added to assign role ' + role.name);
-            }
-          }
-        }
-      } else {
-        const command = spl[2];
-        const guild = msg.guild!.id;
-        if (command[0] !== '!') {
-          await msg.channel.send('Command must start with !');
-        } else {
-          const removeIdx = assignableRoles.findIndex(
-            (r) => r.command === command && r.guild === guild,
-          );
-          if (removeIdx !== -1) {
-            assignableRoles.splice(removeIdx, 1);
-            await msg.channel.send('Removing role command ' + command);
-            await writeFile(
-              'data/assignableRoles.json',
-              `${JSON.stringify(assignableRoles, null, 2)}\n`,
-              'utf8',
-            );
-          } else {
-            await msg.channel.send('Command does not exist: ' + command);
-          }
-        }
-      }
-    }
   } else {
-    for (const assignableRole of assignableRoles) {
-      if (content === assignableRole.command) {
-        const role = await msg.guild!.roles.fetch(assignableRole.role);
-        if (role) {
-          const hasRole = msg.member.roles.cache.has(assignableRole.role);
-          if (hasRole) {
-            await msg.reply(`Removing the role: ${role.name}`);
-            await msg.member.roles.remove(role);
-          } else {
-            await msg.reply(`Giving you the role: ${role.name}`);
-            await msg.member.roles.add(role);
-          }
-        } else {
-          await msg.reply(`The role for that command is is no longer available.`);
-        }
-      }
-    }
     const me = client.user;
     const forceShop =
       (me && msg.mentions.has(me)) || msg.channel.id === SHOP_ALWAYS_CHECK_CHANNEL_ID;
@@ -183,15 +99,7 @@ async function handleMessage(rt: KuriRuntime, msg: Message) {
 export function registerKuriClient(rt: KuriRuntime): void {
   const {client, timeToLive} = rt;
 
-  client.once(Events.ClientReady, async (c) => {
-    try {
-      rt.assignableRoles.length = 0;
-      rt.assignableRoles.push(
-        ...JSON.parse(await readFile('data/assignableRoles.json', 'utf8')),
-      );
-    } catch {
-      /* missing file */
-    }
+  client.once(Events.ClientReady, (c) => {
     console.log(`Logged in as ${c.user.tag}!`);
   });
 
