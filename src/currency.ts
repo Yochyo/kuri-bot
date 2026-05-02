@@ -4,7 +4,6 @@
 // A valid fixer API key is required. The free tier is sufficient.
 
 import {readFile, writeFile} from 'fs/promises';
-import * as _ from 'lodash';
 import * as env from './env';
 import { Mutex } from './mutex';
 
@@ -48,7 +47,7 @@ class Currency {
       try {
         this.parse(JSON.parse(await readFile('data/cache/currency.json', 'utf8')));
       } catch (err) {
-        if (_.get(err, 'code') != 'ENOENT') {
+        if (err?.['code'] != 'ENOENT') {
           throw err;
         }
       }

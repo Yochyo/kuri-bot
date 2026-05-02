@@ -13,11 +13,9 @@
   "dependencies": {
     "cat-ascii-faces": "^2.0.0",
     "discord.js": "^14.26.4",
-    "lodash": "^4.17.21",
     "turndown": "^5.0.1"
   },
   "devDependencies": {
-    "@types/lodash": "^4.14.119",
     "@types/node": "^20.19.39",
     "env-cmd": "^8.0.2",
     "nodemon": "^2.0.6",

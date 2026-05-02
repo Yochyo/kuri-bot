@@ -1,6 +1,5 @@
 import type {Client, Message, MessageReaction} from 'discord.js';
 import {readFile, writeFile} from 'fs/promises';
-import * as _ from 'lodash';
 import {RESTJSONErrorCodes} from 'discord-api-types/v10';
 import {Mutex} from './mutex';
 
@@ -47,7 +46,7 @@ export class TimeToLive {
       try {
         this.data = JSON.parse(await readFile('data/time-to-live.json', 'utf8'));
       } catch (err) {
-        if (_.get(err, 'code') == 'ENOENT') {
+        if (err?.['code'] == 'ENOENT') {
           this.data = {};
         } else {
           throw err;

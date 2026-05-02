@@ -5,7 +5,6 @@ import {
   PermissionFlagsBits,
 } from 'discord.js';
 import {readFile, writeFile} from 'fs/promises';
-import * as _ from 'lodash';
 import {TimeToLive} from '../time-to-live';
 import {findShopInfo} from '../shop-info';
 import {currency} from '../currency';
@@ -52,7 +51,7 @@ async function checkShops(message: Message, forceCheck: boolean) {
 }
 
 async function handleMessage(rt: KuriRuntime, msg: Message) {
-  const {client, assignableRoles} = rt;
+  let {client, assignableRoles} = rt;
   if (msg.author.bot) return;
   if (!msg.channel.isSendable()) return;
   if (!msg.member) {
@@ -74,7 +73,7 @@ async function handleMessage(rt: KuriRuntime, msg: Message) {
       const result = await currency.convert(value, from, to);
       await msg.channel.send(`${value} ${from} = ${result} ${to}`);
     } catch (err) {
-      if (_.get(err, 'code') == 'missing_access_key') {
+      if (err?.['code'] == 'missing_access_key') {
         await msg.channel.send(
           'A fixer API token has not been configured so conversion rates could not be obtained.',
         );
@@ -117,7 +116,7 @@ async function handleMessage(rt: KuriRuntime, msg: Message) {
         if (command[0] !== '!') {
           await msg.channel.send('Command must start with !');
         } else {
-          if (_.find(assignableRoles, {command, guild} as Partial<AssignableRole>)) {
+          if (assignableRoles.some((r) => r.command === command && r.guild === guild)) {
             await msg.channel.send('Command already exists: ' + command);
           } else {
             if (role.permissions.has(PermissionFlagsBits.Administrator)) {
@@ -139,8 +138,11 @@ async function handleMessage(rt: KuriRuntime, msg: Message) {
         if (command[0] !== '!') {
           await msg.channel.send('Command must start with !');
         } else {
-          if (_.find(assignableRoles, {command, guild} as Partial<AssignableRole>)) {
-            _.remove(assignableRoles, {command, guild} as Partial<AssignableRole>);
+          const removeIdx = assignableRoles.findIndex(
+            (r) => r.command === command && r.guild === guild,
+          );
+          if (removeIdx !== -1) {
+            assignableRoles.splice(removeIdx, 1);
             await msg.channel.send('Removing role command ' + command);
             await writeFile(
               'data/assignableRoles.json',
