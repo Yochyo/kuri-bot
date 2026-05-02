@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-	"start-windows": "env-cmd ./test.env nodemon src/index.ts",
+    "start-windows": "env-cmd ./test.env nodemon src/index.ts",
     "start": "env-cmd ./test.env nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts",
     "build": "tsc"
   },
@@ -14,7 +14,7 @@
     "aws-sdk": "^2.958.0",
     "cat-ascii-faces": "^2.0.0",
     "cheerio": "^1.0.0-rc.2",
-    "discord.js": "^12.4.1",
+    "discord.js": "^14.26.4",
     "fs-extra": "^7.0.1",
     "jsonschema": "^1.2.4",
     "lodash": "^4.17.21",
@@ -29,11 +29,11 @@
     "@types/fs-extra": "^5.0.4",
     "@types/jsonschema": "^1.1.1",
     "@types/lodash": "^4.14.119",
-    "@types/node": "^14.14.6",
+    "@types/node": "^20.19.39",
     "@types/request-promise-native": "^1.0.15",
     "env-cmd": "^8.0.2",
     "nodemon": "^2.0.6",
-    "ts-node": "^7.0.1",
-    "typescript": "^4.0.5"
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
   }
 }

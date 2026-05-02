@@ -1,5 +1,5 @@
 import {URL} from 'url';
-import * as request from 'request-promise-native';
+import request from 'request-promise-native';
 import {Mutex} from './mutex';
 
 let mutex = new Mutex();

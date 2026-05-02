@@ -5,7 +5,7 @@
 
 import * as fs from 'fs-extra';
 import * as _ from 'lodash';
-import * as request from 'request-promise-native';
+import request from 'request-promise-native';
 import * as env from './env';
 import { Mutex } from './mutex';
 

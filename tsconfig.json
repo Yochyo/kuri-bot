@@ -5,16 +5,20 @@
     "outDir": "./bin",
     "sourceMap": true,
     "declaration": false,
+    "module": "CommonJS",
     "moduleResolution": "node",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "target": "es5",
+    "target": "ES2022",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
     "typeRoots": [
       "node_modules/@types"
     ],
     "lib": [
-      "es2017",
-      "dom"
+      "ES2022",
+      "DOM"
     ]
-  }
+  },
+  "include": ["src/**/*.ts"]
 }

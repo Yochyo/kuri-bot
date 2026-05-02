@@ -1,33 +1,44 @@
-import * as Discord from 'discord.js';
+import type {Client, EmbedBuilder, GuildTextBasedChannel} from 'discord.js';
 import * as fs from 'fs-extra';
 import * as _ from 'lodash';
-import { validate } from 'jsonschema';
-import { Mutex } from './mutex';
+import {validate} from 'jsonschema';
+import {Mutex} from './mutex';
+
+export interface PublishedFeedItem {
+  embed: EmbedBuilder;
+  /** Milliseconds since epoch (RSS pub date). */
+  publishedAtMs: number;
+}
 
 export class Publisher {
   private channels: string[] = [];
   private _lastPublish = new Date();
   private mutex = new Mutex();
-  get lastPublish() { return this._lastPublish; }
-  constructor(private client: Discord.Client, private name: string) {
+  get lastPublish() {
+    return this._lastPublish;
   }
-  async publish(embeds: Discord.MessageEmbed[]) {
+  constructor(
+    private readonly client: Client,
+    private readonly name: string,
+  ) {}
+
+  async publish(items: PublishedFeedItem[]) {
     await this.mutex.lock();
     try {
-      // limit the number of embeds to avoid spam
-      while (embeds.length > 10) {
-        embeds.splice(0, 1);
+      let batch = [...items];
+      while (batch.length > 10) {
+        batch.splice(0, 1);
       }
-      embeds = _.filter(embeds, embed => embed.timestamp > this.lastPublish.getTime());
-      for (let embed of embeds) {
-        for (let channel of this.channels) {
-          let find = await this.client.channels.fetch(channel);
-          if (find instanceof Discord.TextChannel) {
-            await find.send(embed);
+      batch = _.filter(batch, (item) => item.publishedAtMs > this.lastPublish.getTime());
+      for (const item of batch) {
+        for (const channelId of this.channels) {
+          const channel = await this.client.channels.fetch(channelId);
+          if (channel?.isTextBased() && channel.isSendable() && !channel.isDMBased()) {
+            await channel.send({embeds: [item.embed]});
           }
         }
-        if (embed.timestamp > this.lastPublish.getTime()) {
-          this._lastPublish = new Date(embed.timestamp);
+        if (item.publishedAtMs > this.lastPublish.getTime()) {
+          this._lastPublish = new Date(item.publishedAtMs);
         }
       }
     } finally {
@@ -35,7 +46,8 @@ export class Publisher {
       await this.save();
     }
   }
-  async subscribe(newChannel: Discord.TextChannel) {
+
+  async subscribe(newChannel: GuildTextBasedChannel) {
     await this.mutex.lock();
     try {
       if (this.channels.indexOf(newChannel.id) === -1) {
@@ -46,10 +58,11 @@ export class Publisher {
       await this.save();
     }
   }
-  async unsubscribe(channel: Discord.TextChannel) {
+
+  async unsubscribe(channel: GuildTextBasedChannel) {
     await this.mutex.lock();
     try {
-      let ind = this.channels.indexOf(channel.id);
+      const ind = this.channels.indexOf(channel.id);
       if (ind !== -1) {
         this.channels.splice(ind, 1);
       }
@@ -58,28 +71,33 @@ export class Publisher {
       await this.save();
     }
   }
+
   async load() {
     await this.mutex.lock();
     try {
       try {
-        let data = await fs.readJson(`data/publishers/${this.name}.json`);
-        validate(data, {
-          type: 'object',
-          properties: {
-            channels: {
-              type: 'array',
-              required: true,
-              items: {
-                type: 'string'
-              }
+        const data = await fs.readJson(`data/publishers/${this.name}.json`);
+        validate(
+          data,
+          {
+            type: 'object',
+            properties: {
+              channels: {
+                type: 'array',
+                required: true,
+                items: {
+                  type: 'string',
+                },
+              },
+              lastPublish: {
+                type: 'string',
+                format: 'date-time',
+                required: true,
+              },
             },
-            lastPublish: {
-              type: 'string',
-              format: 'date-time',
-              required: true
-            }
-          }
-        }, { throwError: true });
+          },
+          {throwError: true},
+        );
         this.channels = data.channels;
         this._lastPublish = new Date(data.lastPublish);
       } catch (err) {
@@ -94,12 +112,13 @@ export class Publisher {
       this.mutex.release();
     }
   }
+
   async save() {
     await this.mutex.lock();
     try {
       await fs.writeJson(`data/publishers/${this.name}.json`, {
         channels: this.channels,
-        lastPublish: this._lastPublish.toISOString()
+        lastPublish: this._lastPublish.toISOString(),
       });
     } finally {
       this.mutex.release();
