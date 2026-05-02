@@ -1,5 +1,4 @@
 import {URL} from 'url';
-import request from 'request-promise-native';
 import {Mutex} from './mutex';
 
 let mutex = new Mutex();
@@ -12,8 +11,17 @@ export async function getStores(): Promise<ShopInfo[]> {
   } else {
     try {
       await mutex.lock();
-      const response = await request(`https://cunny.dakidex.com/v1/circles/external-stores`);
-      stores = {stores: JSON.parse(response).data.stores, expire: new Date(now.getTime() + 1 * 60000).getTime()};
+      const res = await fetch(
+        'https://cunny.dakidex.com/v1/circles/external-stores',
+      );
+      if (!res.ok) {
+        throw new Error(`external-stores HTTP ${res.status}: ${res.statusText}`);
+      }
+      const body = (await res.json()) as { data: { stores: ShopInfo[] } };
+      stores = {
+        stores: body.data.stores,
+        expire: new Date(now.getTime() + 1 * 60000).getTime(),
+      };
       return stores.stores;
     } finally {
       mutex.release();

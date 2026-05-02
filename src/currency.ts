@@ -5,7 +5,6 @@
 
 import {readFile, writeFile} from 'fs/promises';
 import * as _ from 'lodash';
-import request from 'request-promise-native';
 import * as env from './env';
 import { Mutex } from './mutex';
 
@@ -25,7 +24,13 @@ class Currency {
   }
 
   private async fetch(): Promise<any> {
-    let data: any = JSON.parse(await request(`http://data.fixer.io/api/latest?access_key=${env.fixerKey}`));
+    const res = await fetch(
+      `http://data.fixer.io/api/latest?access_key=${env.fixerKey}`,
+    );
+    if (!res.ok) {
+      throw new Error(`Fixer API HTTP ${res.status}: ${res.statusText}`);
+    }
+    const data: any = await res.json();
     data.time = new Date();
     return data;
   }
