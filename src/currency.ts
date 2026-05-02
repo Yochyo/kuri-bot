@@ -1,16 +1,17 @@
 // Currency class fetches currency rates from fixer.io and caches the result.
-// Data is stored in memory and on disk (at cache/currency.json).
+// Data is stored in memory and on disk (at data/cache/currency.json).
 // The cache is invalidated after 12 hours.
 // A valid fixer API key is required. The free tier is sufficient.
 
-import {readFile, writeFile} from 'fs/promises';
 import * as env from './env';
+import {Cache} from './cache';
 import { Mutex } from './mutex';
 
 class Currency {
   private time = new Date(0);
   private rates: any = {};
   private mutex = new Mutex();
+  private cache = new Cache<any>('data/cache/currency.json');
 
   private parse(data: any) {
     if (!data.success) {
@@ -43,13 +44,9 @@ class Currency {
     // fetch rates
     await this.mutex.lock();
     try {
-      // try to read cache from disk
-      try {
-        this.parse(JSON.parse(await readFile('data/cache/currency.json', 'utf8')));
-      } catch (err) {
-        if (err?.['code'] != 'ENOENT') {
-          throw err;
-        }
+      const cached = await this.cache.read();
+      if (cached !== undefined) {
+        this.parse(cached);
       }
       if (this.valid) {
         return;
@@ -58,11 +55,7 @@ class Currency {
       // fetch from api
       let data = await this.fetch();
       this.parse(data);
-      await writeFile(
-        'data/cache/currency.json',
-        `${JSON.stringify(data, null, 2)}\n`,
-        'utf8',
-      );
+      await this.cache.write(data);
     } finally {
       this.mutex.release();
     }

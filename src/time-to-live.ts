@@ -1,6 +1,6 @@
 import type {Client, Message, MessageReaction} from 'discord.js';
-import {readFile, writeFile} from 'fs/promises';
 import {RESTJSONErrorCodes} from 'discord-api-types/v10';
+import {Cache} from './cache';
 import {Mutex} from './mutex';
 
 const minutes = 60 * 1000;
@@ -13,6 +13,7 @@ export class TimeToLive {
   private mutex = new Mutex();
   private data: {[key: string]: {liveUntil: number; channel: string}} | null = null;
   private sortedTimes: {time: number; emoji: string}[] = [];
+  private readonly store = new Cache<any>('data/time-to-live.json');
 
   constructor(
     private readonly client: Client,
@@ -43,15 +44,7 @@ export class TimeToLive {
   async load() {
     await this.mutex.lock();
     try {
-      try {
-        this.data = JSON.parse(await readFile('data/time-to-live.json', 'utf8'));
-      } catch (err) {
-        if (err?.['code'] == 'ENOENT') {
-          this.data = {};
-        } else {
-          throw err;
-        }
-      }
+      this.data = (await this.store.read()) ?? {};
     } finally {
       await this.mutex.release();
     }
@@ -60,11 +53,7 @@ export class TimeToLive {
   async save() {
     await this.mutex.lock();
     try {
-      await writeFile(
-        'data/time-to-live.json',
-        `${JSON.stringify(this.data, null, 2)}\n`,
-        'utf8',
-      );
+      await this.store.write(this.data);
     } finally {
       await this.mutex.release();
     }
