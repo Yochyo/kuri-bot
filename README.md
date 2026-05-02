@@ -80,18 +80,6 @@ Will output:
 
 ```100 C = 212 F```
 
-### RSS publishers
-
-Fetches rss feeds from [r/Dakimakuras](https://www.reddit.com/r/Dakimakuras) publishing any new posts to all subscribed channels.
-
-Subscribe using:
-
-```kuri subscribe <r-dakimakuras>```
-
-A channel can be unsubscribed by using:
-
-```kuri unsubscribe <r-dakimakuras>```
-
 ### Nya
 
 Posts cute cat faces when someone ```nya```s.

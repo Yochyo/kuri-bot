@@ -18,7 +18,7 @@ const kuriIntents = [
   GatewayIntentBits.DirectMessageReactions,
 ];
 
-/** Main bot: moderation TTL, roles, publishers, utilities. */
+/** Main bot: moderation TTL, roles, utilities. */
 export function createKuriClient(): Client {
   return new Client({
     intents: kuriIntents,

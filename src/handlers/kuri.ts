@@ -6,7 +6,6 @@ import {
 } from 'discord.js';
 import * as fs from 'fs-extra';
 import * as _ from 'lodash';
-import {Publisher} from '../publisher';
 import {TimeToLive} from '../time-to-live';
 import {findShopInfo} from '../shop-info';
 import {translate} from '../translate';
@@ -21,7 +20,6 @@ export type AssignableRole = {command: string; guild: string; role: string};
 
 export type KuriRuntime = {
   client: Client;
-  publishers: Record<string, Publisher>;
   timeToLive: TimeToLive;
   assignableRoles: AssignableRole[];
 };
@@ -55,7 +53,7 @@ async function checkShops(message: Message, forceCheck: boolean) {
 }
 
 async function handleMessage(rt: KuriRuntime, msg: Message) {
-  const {client, publishers, assignableRoles} = rt;
+  const {client, assignableRoles} = rt;
   if (msg.author.bot) return;
   if (!msg.channel.isSendable()) return;
   if (!msg.member) {
@@ -148,21 +146,6 @@ async function handleMessage(rt: KuriRuntime, msg: Message) {
         }
       }
     }
-  } else if (content.startsWith('kuri subscribe') || content.startsWith('kuri unsubscribe')) {
-    for (const key of Object.keys(publishers)) {
-      const publisher = publishers[key];
-      if (content === `kuri subscribe ${key}`) {
-        if (admin && msg.channel.isTextBased() && !msg.channel.isDMBased()) {
-          await publisher.subscribe(msg.channel);
-          await msg.channel.send(`Subscribed to ${key}.`);
-        }
-      } else if (content === `kuri unsubscribe ${key}`) {
-        if (admin && msg.channel.isTextBased() && !msg.channel.isDMBased()) {
-          await publisher.unsubscribe(msg.channel);
-          await msg.channel.send(`Unsubscribed from ${key}.`);
-        }
-      }
-    }
   } else if (content.startsWith('!translate ') || content.startsWith('!t ')) {
     const message = await msg.channel.send('Translating...');
     try {
@@ -198,12 +181,9 @@ async function handleMessage(rt: KuriRuntime, msg: Message) {
 }
 
 export function registerKuriClient(rt: KuriRuntime): void {
-  const {client, publishers, timeToLive} = rt;
+  const {client, timeToLive} = rt;
 
   client.once(Events.ClientReady, async (c) => {
-    for (const key of Object.keys(publishers)) {
-      await publishers[key].load();
-    }
     try {
       rt.assignableRoles.length = 0;
       rt.assignableRoles.push(...(await fs.readJson('data/assignableRoles.json')));
