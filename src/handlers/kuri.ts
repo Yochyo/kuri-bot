@@ -4,7 +4,7 @@ import {
   Events,
   PermissionFlagsBits,
 } from 'discord.js';
-import * as fs from 'fs-extra';
+import {readFile, writeFile} from 'fs/promises';
 import * as _ from 'lodash';
 import {TimeToLive} from '../time-to-live';
 import {findShopInfo} from '../shop-info';
@@ -124,7 +124,11 @@ async function handleMessage(rt: KuriRuntime, msg: Message) {
               await msg.channel.send(`${role.name} cannot be self-assigned.`);
             } else {
               assignableRoles.push({command, guild, role: role.id});
-              await fs.writeJson('data/assignableRoles.json', assignableRoles);
+              await writeFile(
+                'data/assignableRoles.json',
+                `${JSON.stringify(assignableRoles, null, 2)}\n`,
+                'utf8',
+              );
               await msg.channel.send('Command ' + command + ' added to assign role ' + role.name);
             }
           }
@@ -138,7 +142,11 @@ async function handleMessage(rt: KuriRuntime, msg: Message) {
           if (_.find(assignableRoles, {command, guild} as Partial<AssignableRole>)) {
             _.remove(assignableRoles, {command, guild} as Partial<AssignableRole>);
             await msg.channel.send('Removing role command ' + command);
-            await fs.writeJson('data/assignableRoles.json', assignableRoles);
+            await writeFile(
+              'data/assignableRoles.json',
+              `${JSON.stringify(assignableRoles, null, 2)}\n`,
+              'utf8',
+            );
           } else {
             await msg.channel.send('Command does not exist: ' + command);
           }
@@ -176,7 +184,9 @@ export function registerKuriClient(rt: KuriRuntime): void {
   client.once(Events.ClientReady, async (c) => {
     try {
       rt.assignableRoles.length = 0;
-      rt.assignableRoles.push(...(await fs.readJson('data/assignableRoles.json')));
+      rt.assignableRoles.push(
+        ...JSON.parse(await readFile('data/assignableRoles.json', 'utf8')),
+      );
     } catch {
       /* missing file */
     }

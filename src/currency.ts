@@ -3,7 +3,7 @@
 // The cache is invalidated after 12 hours.
 // A valid fixer API key is required. The free tier is sufficient.
 
-import * as fs from 'fs-extra';
+import {readFile, writeFile} from 'fs/promises';
 import * as _ from 'lodash';
 import request from 'request-promise-native';
 import * as env from './env';
@@ -41,7 +41,7 @@ class Currency {
     try {
       // try to read cache from disk
       try {
-        this.parse(await fs.readJson('data/cache/currency.json'));
+        this.parse(JSON.parse(await readFile('data/cache/currency.json', 'utf8')));
       } catch (err) {
         if (_.get(err, 'code') != 'ENOENT') {
           throw err;
@@ -54,7 +54,11 @@ class Currency {
       // fetch from api
       let data = await this.fetch();
       this.parse(data);
-      await fs.writeJson('data/cache/currency.json', data);
+      await writeFile(
+        'data/cache/currency.json',
+        `${JSON.stringify(data, null, 2)}\n`,
+        'utf8',
+      );
     } finally {
       this.mutex.release();
     }

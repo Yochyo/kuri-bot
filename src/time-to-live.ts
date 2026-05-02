@@ -1,5 +1,5 @@
 import type {Client, Message, MessageReaction} from 'discord.js';
-import * as fs from 'fs-extra';
+import {readFile, writeFile} from 'fs/promises';
 import * as _ from 'lodash';
 import {RESTJSONErrorCodes} from 'discord-api-types/v10';
 import {Mutex} from './mutex';
@@ -45,7 +45,7 @@ export class TimeToLive {
     await this.mutex.lock();
     try {
       try {
-        this.data = await fs.readJson('data/time-to-live.json');
+        this.data = JSON.parse(await readFile('data/time-to-live.json', 'utf8'));
       } catch (err) {
         if (_.get(err, 'code') == 'ENOENT') {
           this.data = {};
@@ -61,7 +61,11 @@ export class TimeToLive {
   async save() {
     await this.mutex.lock();
     try {
-      await fs.writeJson('data/time-to-live.json', this.data);
+      await writeFile(
+        'data/time-to-live.json',
+        `${JSON.stringify(this.data, null, 2)}\n`,
+        'utf8',
+      );
     } finally {
       await this.mutex.release();
     }
