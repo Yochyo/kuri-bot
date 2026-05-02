@@ -12,20 +12,15 @@
   "license": "MIT",
   "dependencies": {
     "cat-ascii-faces": "^2.0.0",
-    "cheerio": "^1.0.0-rc.2",
     "discord.js": "^14.26.4",
     "fs-extra": "^7.0.1",
-    "jsonschema": "^1.2.4",
     "lodash": "^4.17.21",
     "request": "^2.88.0",
     "request-promise-native": "^1.0.5",
-    "rxjs": "^6.3.3",
     "turndown": "^5.0.1"
   },
   "devDependencies": {
-    "@types/cheerio": "^0.22.10",
     "@types/fs-extra": "^5.0.4",
-    "@types/jsonschema": "^1.1.1",
     "@types/lodash": "^4.14.119",
     "@types/node": "^20.19.39",
     "@types/request-promise-native": "^1.0.15",
