@@ -1,4 +1,3 @@
-import {mkdir} from 'fs/promises';
 import * as env from './utils/env';
 import {TimeToLive} from './modules/time-to-live';
 import {createKuriClient, createSyreneClient} from './discord/create-client';
@@ -27,8 +26,6 @@ registerSyreneClient(syrene);
 
 void (async () => {
   try {
-    await mkdir('data', {recursive: true});
-    await mkdir('data/cache', {recursive: true});
     await timeToLive.load();
     if (env.syreneToken) {
       void syrene.login(env.syreneToken);

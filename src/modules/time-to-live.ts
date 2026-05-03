@@ -5,6 +5,8 @@ import {Mutex} from '../utils/mutex';
 
 const minutes = 60 * 1000;
 
+type TimeToLiveStore = Record<string, {liveUntil: number; channel: string}>;
+
 export class TimeToLiveOptions {
   emojis: {[key: string]: {minutesToLive?: number; reset?: boolean}};
 }
@@ -13,7 +15,7 @@ export class TimeToLive {
   private mutex = new Mutex();
   private data: {[key: string]: {liveUntil: number; channel: string}} | null = null;
   private sortedTimes: {time: number; emoji: string}[] = [];
-  private readonly store = new Cache<any>('data/time-to-live.json');
+  private readonly store = new Cache<TimeToLiveStore>('data/time-to-live.json');
 
   constructor(
     private readonly client: Client,

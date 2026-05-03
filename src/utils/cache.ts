@@ -1,6 +1,5 @@
-import {mkdir} from 'fs/promises';
 import {dirname} from 'node:path';
-import {readFile, writeFile} from 'fs/promises';
+import {readFile, writeFile, mkdir} from 'fs/promises';
 
 async function readJsonFile<T>(path: string): Promise<T | undefined> {
   try {
