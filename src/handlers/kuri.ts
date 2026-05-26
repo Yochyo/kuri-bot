@@ -7,6 +7,7 @@ import {
 import {TimeToLive} from '../modules/time-to-live';
 import {findShopInfo} from '../modules/shop-info';
 import {currency} from '../modules/currency';
+import {getBoostersUsernames} from '../modules/dm-boosters';
 
 import cats = require('cat-ascii-faces');
 
@@ -55,6 +56,24 @@ async function handleMessage(rt: KuriRuntime, msg: Message) {
     return;
   }
   let content = msg.content.trim();
+  const cmd = content.split(/\s+/)[0]?.toLowerCase();
+
+  if (
+    msg.guild &&
+    cmd === '!dm-boosters' &&
+    msg.member.permissions.has(PermissionFlagsBits.ManageMessages)
+  ) {
+    // Delete the command message and DM the server booster's username list.
+    await msg.delete().catch(() => undefined);
+    const usernames = await getBoostersUsernames(msg.guild);
+    const dmBody =
+      usernames.length === 0
+        ? 'No active server boosters found.'
+        : `${usernames.length} users found\n`+ usernames.map((u) => `${u}`).join('\n');
+    await msg.author.send(`Server boosters on "${msg.guild.name}":\n${dmBody}`).catch(() => undefined);
+    return;
+  }
+
   if (content.match(/^[-]?[\d|,]{0,12}(\.\d{1,2})?\s*\w{3}\s+to\s+\w{3}$/i)) {
     try {
       content = content.replace(/,/g, '');
